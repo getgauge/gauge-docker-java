@@ -1,0 +1,25 @@
+{
+    "id": "docker-java",
+    "version": "0.0.1",
+    "description": "Java support for gauge in a docker container",
+    "install": {
+        "windows": [],
+        "linux": [],
+        "darwin": []
+    },
+    "run": {
+        "windows": ["bin/gauge-docker-java", "--start"],
+        "linux": ["bin/gauge-docker-java", "--start"],
+        "darwin": ["bin/gauge-docker-java", "--start"]
+    },
+    "init": {
+        "windows": ["bin/gauge-docker-java", "--init"],
+        "linux": ["bin/gauge-docker-java", "--init"],
+        "darwin": ["bin/gauge-docker-java", "--init"]
+    },
+    "lib": "libs",
+    "gaugeVersionSupport": {
+        "minimum": "0.6.0",
+        "maximum": ""
+    }
+}
