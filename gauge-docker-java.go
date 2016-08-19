@@ -55,9 +55,10 @@ func main() {
 	flag.Parse()
 	setPluginAndProjectRoots()
 	if *start {
-		p := pluginVersion("java")
-		fmt.Printf("Java Plugin Version: %s\n", p)
-		startDockerJava()
+		v := pluginVersion("java")
+		fmt.Printf("Using Java Plugin Version: %s\n", v)
+		fmt.Println("Bringing up Docker container...")
+		startDockerJava(v)
 	} else if *initialize {
 		buildImage()
 		initializeProject()
@@ -80,28 +81,35 @@ func buildImage() {
 }
 
 func pluginVersion(name string) string {
+	ver := "0.5.0"
 	out, err := exec.Command("gauge", "-v", "--machine-readable").Output()
 	if err != nil {
 		log.Fatal(err)
 	}
 	type Plugin struct {
-		name    string
-		version string
+		Name    string `json:"name"`
+		Version string `json:"version"`
 	}
 	type GaugeOutput struct {
-		version string
-		plugins []Plugin
+		Version string   `json:"version"`
+		Plugins []Plugin `json:"plugins"`
 	}
 	var outjson GaugeOutput
+
+	// TODO: There should be a better way to do this.
 	err = json.Unmarshal([]byte(string(out)), &outjson)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	fmt.Printf("%+v\n", outjson)
-	return "0.5.0"
+	for _, p := range outjson.Plugins {
+		if p.Name == "java" {
+			ver = p.Version
+		}
+	}
+	return ver
 }
 
-func startDockerJava() {
+func startDockerJava(v string) {
 	os.Chdir(projectRoot)
 
 	internalPort := os.Getenv("GAUGE_INTERNAL_PORT")
@@ -118,7 +126,7 @@ func startDockerJava() {
 		"getgauge/java",
 		"/bin/sh",
 		"-c",
-		"set -e; cd /opt/test; cp -rv ~/.gauge/plugins/java/0.5.0/libs/* ./libs/; ~/.gauge/plugins/java/0.5.0/bin/gauge-java --start"}
+		fmt.Sprintf("set -e; cd /opt/test; cp -r ~/.gauge/plugins/java/%s/libs/* ./libs/; ~/.gauge/plugins/java/%s/bin/gauge-java --start", v, v)}
 
 	fmt.Printf("Running command:\n\t%s %s\n", dockerCmd, args)
 	cmd := runCommandAsync(dockerCmd, args)
@@ -212,26 +220,6 @@ func appendClasspath(source *string, classpath string) {
 	} else {
 		*source = fmt.Sprintf("%s%c%s", *source, os.PathListSeparator, classpath)
 	}
-}
-
-// User set classpath & additional libs will be comma separated
-// it could be relative path, but JVM needs full path to be specified
-// so this function splits the path, convert them to absolute path forms a classpath
-func getClassPathForVariable(envVariableName string) string {
-	value := os.Getenv(envVariableName)
-	cp := ""
-	if len(value) > 0 {
-		paths := splitByComma(value)
-		for _, p := range paths {
-			abs, err := filepath.Abs(p)
-			if err == nil {
-				appendClasspath(&cp, abs)
-			} else {
-				appendClasspath(&cp, p)
-			}
-		}
-	}
-	return cp
 }
 
 type initializerFunc func()
