@@ -112,21 +112,20 @@ func pluginVersion(name string) string {
 func startDockerJava(v string) {
 	os.Chdir(projectRoot)
 
-	internalPort := os.Getenv("GAUGE_INTERNAL_PORT")
-	apiPort := os.Getenv("GAUGE_API_PORT")
-
 	args := []string{
 		"run",
-		"--rm",
+		"--rm"}
+
+	args = append(args, filteredEnvs()...)
+
+	args = append(args, []string{
 		"-v", fmt.Sprintf("%s:%s", projectRoot, "/opt/test"),
 		"-e", fmt.Sprintf("GAUGE_PROJECT_ROOT=%s", "/opt/test"),
-		"-e", fmt.Sprintf("GAUGE_INTERNAL_PORT=%s", internalPort),
-		"-e", fmt.Sprintf("GAUGE_API_PORT=%s", apiPort),
 		"--net=host",
 		"getgauge/java",
 		"/bin/sh",
 		"-c",
-		fmt.Sprintf("set -e; cd /opt/test; cp -r ~/.gauge/plugins/java/%s/libs/* ./libs/; ~/.gauge/plugins/java/%s/bin/gauge-java --start", v, v)}
+		fmt.Sprintf("set -e; cd /opt/test; cp -r /root/.gauge/plugins/java/%s/libs/* ./libs/; /root/.gauge/plugins/java/%s/bin/gauge-java --start", v, v)}...)
 
 	fmt.Printf("Running command:\n\t%s %s\n", dockerCmd, args)
 	cmd := runCommandAsync(dockerCmd, args)
@@ -138,6 +137,44 @@ func startDockerJava(v string) {
 		fmt.Printf("process %s with pid %d quit unexpectedly. %s\n", cmd.Path, cmd.Process.Pid, err.Error())
 		os.Exit(1)
 	}
+}
+
+func filteredEnvs() []string {
+	ignoredVars := []string{
+		"SUDO_",
+		"LS_COLORS",
+		"XAUTHORITY",
+		"PATH=",
+		"TERM=",
+		"LANG=",
+		"DISPLAY=",
+		"HOME=",
+		"LANGUAGE=",
+		"COLORTERM=",
+		"SHELL=",
+		"MAIL=",
+		"LOGNAME=",
+		"USER=",
+		"USERNAME=",
+	}
+	var args []string
+
+	for _, a := range os.Environ() {
+		if !envStartsWith(a, ignoredVars) {
+			args = append(args, "-e", a)
+		}
+	}
+	return args
+}
+
+func envStartsWith(input string, ignoredVars []string) bool {
+	for _, ivar := range ignoredVars {
+		if strings.Index(input, ivar) == 0 {
+			return true
+			break
+		}
+	}
+	return false
 }
 
 func listenForKillSignal(cmd *exec.Cmd) {
