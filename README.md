@@ -18,6 +18,7 @@ When gauge tests are run, the plugin brings up a container from the image that w
 - Works only on Linux at the moment. [OSX needs further abstractions](https://forums.docker.com/t/should-docker-run-net-host-work/14215/4) using `docker-manager`.
 - Docker is invoked using `--net=host` option. This does not isolate the network interface of the container from the host. This is necessary because both Gauge and Gauge-Java try to listen and connect on `localhost` for now.
 - Currently, Gauge commands need to be run as the same user that runs the Docker daemon. By default, it needs `root`. So, you may need to do `sudo gauge --init docker-java` and `sudo gauge specs/` unless you run [Docker manager as a different user](http://askubuntu.com/q/477551/25541).
+- `gauge-java` in the container is not able to figure out the classpaths. So, `jar`s have to explicitly copied over from `.gauge/plugins/java` to the `./libs` directory in the current project.
 
 ---
 
