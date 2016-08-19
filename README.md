@@ -5,6 +5,22 @@ Gauge-Docker-Java
 
 This is an **experimental** plugin for running [Java language plugin](http://getgauge.io/documentation/user/current/test_code/java/java.html) for [gauge](http://getgauge.io) in a Docker container.
 
+## How it works
+
+This plugin appears to Gauge as a language runner. Gauge has no knowledge about Docker usage. The plugin is responsible for bringing up Docker and executing the test code in the container.
+
+When a new project is initialized, this plugin builds a Docker image from the Dockerfile shipped with the plugin. The image has Gauge Java installed in it.
+
+When gauge tests are run, the plugin brings up a container from the image that was built previously, mounts the current project root in the container, sets Gauge's API ports as environment variables and invokes the Gauge Java runner inside the container. The Gauge Java runner in the container connects to Gauge running on the host through TCP.
+
+## Caveats
+
+- Works only on Linux at the moment. [OSX needs further abstractions](https://forums.docker.com/t/should-docker-run-net-host-work/14215/4) using `docker-manager`.
+- Docker is invoked using `--net=host` option. This does not isolate the network interface of the container from the host. This is necessary because both Gauge and Gauge-Java try to listen and connect on `localhost` for now.
+- Currently, Gauge commands need to be run as the same user that runs the Docker daemon. By default, it needs `root`. So, you may need to do `sudo gauge --init docker-java` and `sudo gauge specs/` unless you run [Docker manager as a different user](http://askubuntu.com/q/477551/25541).
+
+---
+
 ## Build from source
 
 ### Requirements
@@ -58,10 +74,6 @@ gauge specs/
 This will start Gauge, Gauge will trigger the `docker-java` runner,
 which will in turn bring up a container with the image compiled
 previously.
-
-## Caveats
-
-TODO
 
 License
 -------
