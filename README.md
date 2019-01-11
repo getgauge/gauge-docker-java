@@ -3,7 +3,7 @@ Gauge-Docker-Java
 
 **Status: Unstable | Not ready for production use**
 
-This is an **experimental** plugin for running [Java language plugin](http://getgauge.io/documentation/user/current/test_code/java/java.html) for [gauge](http://getgauge.io) in a Docker container.
+This is an **experimental** plugin for running [Java language plugin](https://github.com/getgauge/gauge-java) for [gauge](http://gauge.org) in a Docker container.
 
 ## How it works
 
