@@ -1,6 +1,8 @@
 Gauge-Docker-Java
 ========================
 
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
+
 **Status: Unstable | Not ready for production use**
 
 This is an **experimental** plugin for running [Java language plugin](https://github.com/getgauge/gauge-java) for [gauge](http://gauge.org) in a Docker container.
